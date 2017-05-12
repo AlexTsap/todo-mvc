@@ -1,9 +1,9 @@
-import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 
+import { Todo } from '../models/todo.model';
 import { TodoStore } from '../service/todo.store.service';
 import { TodoComponent } from './app.component';
-import { Todo } from '../models/todo.model';
 
 describe('check TodoComponent', () => {
   let component: TodoComponent;
@@ -19,22 +19,16 @@ describe('check TodoComponent', () => {
         FormsModule
       ],
       providers: [
-        TodoStore,
-        TodoComponent
+        TodoStore
       ]
     });
-  }));
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(TodoComponent);
     component = fixture.componentInstance;
 
     todoStore = TestBed.get(TodoStore);
-    todoStore.todos = [
-      new Todo('name')
-    ];
-
-  });
+    todoStore.todos = [new Todo('name')];
+  }));
 
   it('check function removeCompleted', () => {
     spyOn(component.todoStore, 'removeCompleted');
@@ -46,7 +40,7 @@ describe('check TodoComponent', () => {
 
   it('check function stopEditing', () => {
     const editingTitle = 'name';
-    const testTodo = new Todo('name');
+    const testTodo = new Todo('nameTest');
 
     component.stopEditing(testTodo, editingTitle);
 
@@ -63,7 +57,7 @@ describe('check TodoComponent', () => {
   });
 
   it('check function updateEditing with parameters: Todo, editedTitle.length > 0', () => {
-    const testTodo = new Todo('name');
+    const testTodo = new Todo('nameTest');
     const testTitle = 'name';
 
     component.updateEditingTodo(testTodo, testTitle);
@@ -85,43 +79,60 @@ describe('check TodoComponent', () => {
     expect(testTitle).toEqual(testTitle.trim());
     expect(testTitle.length).toEqual(0);
     expect(testTodo.editing).toEqual(false);
-    expect(component.todoStore.remove).toHaveBeenCalled();
     expect(component.todoStore.remove).toHaveBeenCalledWith(testTodo);
   });
 
-  it('should edit Todo', () => {
-    component.editTodo(new Todo(''));
+  it('check function editTodo', () => {
+    const testTodo = new Todo('name');
+
+    component.editTodo(testTodo);
+
+    expect(testTodo.editing).toEqual(true);
   });
 
-  it('should toggle copmletion', () => {
-    component.toggleCompletion(new Todo(''));
+  it('check function toggleCopmletion', () => {
+    const testTodo = new Todo('name');
+    spyOn(component.todoStore, 'toggleCompletion');
+
+    component.toggleCompletion(testTodo);
+
+    expect(component.todoStore.toggleCompletion).toHaveBeenCalledWith(testTodo);
   });
 
-  it('should remove', () => {
-    component.remove(new Todo(''));
+  it('check function remove', () => {
+    const testTodo = new Todo('name');
+    spyOn(component.todoStore, 'remove');
+
+    component.remove(testTodo);
+
+    expect(component.todoStore.remove).toHaveBeenCalledWith(testTodo);
   });
 
-  it('should add Todo => newTodoText.length > 0', () => {
+  it('check function addTodo when newTodoText.length > 0', () => {
     component.newTodoText = 'test';
+    spyOn(component.todoStore, 'add');
 
     component.addTodo();
+
+    expect(component.todoStore.add).toHaveBeenCalledWith('test');
   });
 
-  it('should add Todo => newTodoText.length === 0', () => {
+  it('check function addTodo when newTodoText.length === 0', () => {
     component.newTodoText = '';
 
     component.addTodo();
   });
 
-  it('should filter', () => {
+  it('check function filter all', () => {
     component.filter('all');
 
     component.todoStore.todos.length = 0;
 
     expect(component.todoStore.todos).toEqual([]);
+    expect(component.todosClone).toEqual(component.todoStore.todos);
   });
 
-  it('check filter with next parameters: all => forEach => item.completed === true', () => {
+  it('check function filter with next parameters: all => forEach => item.completed === true', () => {
     component.todoStore.todos.forEach(item => {
       item.completed = true;
     });
@@ -130,13 +141,16 @@ describe('check TodoComponent', () => {
   });
 
   it('should filter => active', () => {
+    const arrCompleted = new Todo('name');
+
     component.filter('active');
+
+    expect(component.todosClone).toContain(arrCompleted);
   });
 
   it('should filter => completed', () => {
     component.filter('completed');
+
+    expect(component.todosClone).toEqual([]);
   });
-
-
-})
-;
+});
